@@ -1,22 +1,15 @@
 package com.sample.rohlik.synchronization
 
-import android.app.Application
-import androidx.room.Room
 import com.sample.rohlik.db.AppDatabase
 import com.sample.rohlik.db.ItemizationEntryDB
-import java.lang.Exception
 
-class LocalSyncManager constructor(private val application: Application) {
-
-    private val database: AppDatabase = Room.databaseBuilder(
-        application.applicationContext,
-        AppDatabase::class.java, "itemization_db"
-    ).build()
+class LocalSyncManager constructor(private val database: AppDatabase) {
 
     fun getItemizationEntries(): List<ItemizationEntryDB> {
         return database.itemizationDao().getAllItems()
     }
 
+    //TODO
     fun getLocallyModifiedItems(): List<ItemizationEntryDB> {
         return database.itemizationDao().getAllItems()
     }

@@ -1,18 +1,25 @@
 package com.sample.rohlik.synchronization
 
 import android.app.Application
+import android.util.Log
 import com.sample.rohlik.data.NetworkResponse
+import com.sample.rohlik.db.AppDatabase
 import com.sample.rohlik.db.ItemizationEntryDB
 import com.sample.rohlik.network.ExpenseReports
 import kotlinx.coroutines.*
 
 class ItemizationListNetSyncManager(
     private val application: Application,
+    database: AppDatabase,
     private val repository: ExpenseReports
 ) : NetSyncManager() {
 
     private var coroutineScope = CoroutineScope(Dispatchers.IO)
-    private var localSyncManager = LocalSyncManager(application)
+    private var localSyncManager = LocalSyncManager(database)
+
+    fun getLocalSyncManager() : LocalSyncManager{
+        return localSyncManager
+    }
 
     override fun localToServerSync() {
         runBlocking(coroutineScope.coroutineContext) {
@@ -29,18 +36,21 @@ class ItemizationListNetSyncManager(
 
     override fun serverToLocalSync() {
         runBlocking(coroutineScope.coroutineContext) {
-            val dbItems: MutableList<ItemizationEntryDB> = mutableListOf()
+
             launch {
+                val dbItems: MutableList<ItemizationEntryDB> = mutableListOf()
                 val response = withContext(Dispatchers.IO) {
                     repository.getItemizationEntries("test", "test", application)
                 }
                 if (response is NetworkResponse.Success) {
                     response.body.forEach { dto ->
                         dbItems.add(mapDTOtoDBO(dto))
+                        Log.d("TAG", " Network response success : ")
                     }
                     localSyncManager.saveAll(dbItems)
                 } else {
                     // TODO
+                    Log.d("TAG", " Network response failed : ")
                 }
             }
         }

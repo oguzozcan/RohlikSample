@@ -1,7 +1,6 @@
 package com.sample.rohlik.db
 
 import androidx.room.*
-import com.sample.rohlik.synchronization.ObjectState
 
 @Dao
 interface ItemizationEntryDao {
@@ -9,8 +8,9 @@ interface ItemizationEntryDao {
     @Query("SELECT * FROM ItemizationEntryDB")
     fun getAllItems(): List<ItemizationEntryDB>
 
-    @Query("SELECT * FROM ItemizationEntryDB")
-    fun getModifiedItems(states: Array<ObjectState>): List<ItemizationEntryDB>
+    //TODO
+//    @Query("SELECT * FROM ItemizationEntryDB")
+//    fun getModifiedItems(states: Array<String>): List<ItemizationEntryDB>
 
     @Query("SELECT * FROM ItemizationEntryDB WHERE expenseId == :id")
     fun findById(id: String): ItemizationEntryDB
