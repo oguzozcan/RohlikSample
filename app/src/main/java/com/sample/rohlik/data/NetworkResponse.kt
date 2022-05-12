@@ -33,13 +33,4 @@ sealed class NetworkResponse<out T : Any, out U : Any> {
      */
     data class NetworkError(val error: IOException) : NetworkResponse<Nothing, Nothing>()
 
-    /**
-     * Generic error indication a failure in serialization or deserialization process.
-     */
-    data class SerializationError(val error: Throwable?) : NetworkResponse<Nothing, Nothing>()
-
-    /**
-     * Other error cases
-     */
-    data class UnknownError(val error: Throwable?) : NetworkResponse<Nothing, Nothing>()
 }

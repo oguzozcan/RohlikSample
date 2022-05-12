@@ -4,21 +4,7 @@ import androidx.annotation.ColorRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -52,7 +38,7 @@ import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.sample.rohlik.R
-import com.sample.rohlik.data.ItemizationEntryDTO
+import com.sample.rohlik.db.ItemizationEntryDB
 import com.sample.rohlik.ui.ItemizationListViewModel
 import io.reactivex.Observable
 import java.util.*
@@ -294,7 +280,7 @@ fun ItemizationLine(
 fun ItemizationRow(
     viewModel: ItemizationListViewModel,
     isLastItem: Boolean,
-    item: ItemizationEntryDTO,
+    item: ItemizationEntryDB,
     onRowClick: (expenseId: String) -> Unit,
     onRowLongClick: (expenseId: String) -> Unit
 ) {
@@ -326,20 +312,20 @@ fun ItemizationRow(
                 horizontalAlignment = Alignment.Start
             ) {
                 ItemizationLine(
-                    title = item.expenseType.name.orEmpty(),
+                    title = item.expenseType.orEmpty(),
                     fontSize = rowMainTextSize,
                     color = R.color.hig_charcoal,
                     fontWeight = FontWeight.Medium,
                     paddingBottom = mediumLinePadding
                 )
                 ItemizationLine(
-                    title = getLongDate(item.transactionDate), //getFormattedTime(item.transactionDate),
+                    title = item.transactionDate, //getFormattedTime(item.transactionDate),
                     fontSize = rowSubtitleSize,
                     color = R.color.hig_dark_grey,
                     paddingBottom = smallLinePadding
                 )
                 ItemizationLine(
-                    title = item.location?.name.orEmpty(),
+                    title = item.location,
                     fontSize = rowSubtitleSize,
                     color = R.color.hig_dark_grey,
                     paddingBottom = mediumLinePadding
@@ -353,7 +339,7 @@ fun ItemizationRow(
             ) {
                 ItemizationLine(
                     title = formatAmount(
-                        item.transactionAmount.value,
+                        item.transactionAmount.amount,
                         Locale.getDefault(),
                         item.transactionAmount.currencyCode
                     ),
@@ -493,7 +479,7 @@ fun ListContent(
                 stickyHeader {
                     GroupingHeader(date = date)
                 }
-                itemsIndexed(groupedItems, { _, listItem: ItemizationEntryDTO -> listItem.expenseId }) { index, item ->
+                itemsIndexed(groupedItems, { _, listItem: ItemizationEntryDB -> listItem.expenseId }) { index, item ->
                     val isLastItem =
                         (index == groupedItems.size - 1) && groupIndex == grouped.size - 1
                     if (!viewModel.isMutationEnabled() || !item.canDelete) {
@@ -543,7 +529,7 @@ private fun calculateNestedScrollToHideBottomBar(
 fun SwipeLayout(
     viewModel: ItemizationListViewModel,
     isLastItem: Boolean = false,
-    item: ItemizationEntryDTO,
+    item: ItemizationEntryDB,
     onSwipe: (expenseId: String) -> Unit,
     onRowClick: (expenseId: String) -> Unit,
     onRowLongClick: (expenseId: String) -> Unit,

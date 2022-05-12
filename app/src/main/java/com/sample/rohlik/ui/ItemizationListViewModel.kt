@@ -9,9 +9,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.sample.rohlik.compose.*
-import com.sample.rohlik.data.ItemizationEntryDTO
-import com.sample.rohlik.data.NetworkResponse
+import com.sample.rohlik.db.AppDatabase
+import com.sample.rohlik.db.ItemizationEntryDB
 import com.sample.rohlik.network.ExpenseReportsImpl
+import com.sample.rohlik.synchronization.ItemizationListNetSyncManager
 import io.reactivex.Single
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -26,7 +27,7 @@ const val TRANSACTION_TOTAL: String = "TRANSACTION_TOTAL"
 open class ItemizationListViewModel(application: Application) : AndroidViewModel(application) {
 
     //TODO internal val connectivityChecker: InternetConnectivityChecker,
-    internal var itemizationEntries = MutableLiveData<List<ItemizationEntryDTO>>(listOf())
+    internal var itemizationEntries = MutableLiveData<List<ItemizationEntryDB>>(listOf())
     internal val selectedItemizationEntries = MutableLiveData(mutableListOf<String>())
     internal val resultType = MutableLiveData<ResultTypeItemization>(IN_PROGRESS())
     internal val selectedItemsResultType = MutableLiveData(SUCCESS())
@@ -37,6 +38,12 @@ open class ItemizationListViewModel(application: Application) : AndroidViewModel
     internal var itemizedAmount = 0.0
     internal var currencyCode = ""
     internal var isInMultiSelectionMode = MutableLiveData(false)
+
+    private lateinit var syncManager: ItemizationListNetSyncManager
+
+    fun initViewModel (database: AppDatabase){
+        syncManager = ItemizationListNetSyncManager(getApplication(), database, ExpenseReportsImpl())
+    }
 
     fun setIds(extras: Bundle?) {
         cleanViewModel()
@@ -66,7 +73,7 @@ open class ItemizationListViewModel(application: Application) : AndroidViewModel
     fun calculateItemizationAmount(): String {
         itemizedAmount = 0.0
         itemizationEntries.value?.listIterator()?.forEach {
-            itemizedAmount += it.transactionAmount.value
+            itemizedAmount += it.transactionAmount.amount
             currencyCode = it.transactionAmount.currencyCode
         }
         return formatAmount(itemizedAmount, Locale.getDefault(), currencyCode)
@@ -81,39 +88,38 @@ open class ItemizationListViewModel(application: Application) : AndroidViewModel
     }
 
     internal fun getItemizationList() {
-        if (!isOnline()) {
-            return
-        }
+//        if (!isOnline()) {
+//            return
+//        }
         resultType.postValue(IN_PROGRESS())
-        viewModelScope.launch {
-            val response = withContext(Dispatchers.IO) {
-                ExpenseReportsImpl().getItemizationEntries(
-                    reportId = reportId,
-                    expenseId = parentExpenseId, getApplication<Application>()
-                )
-            }
-            processItemizationEntriesResponse(response)
+        syncManager.sync()
+
+        viewModelScope.launch(Dispatchers.IO) {
+            val itemizationList = syncManager.getLocalSyncManager().getItemizationEntries()
+            resultType.postValue(SUCCESS())
+            itemizationEntries.postValue(itemizationList)
+            makeProgressBarInvisible()
         }
     }
 
-    internal fun processItemizationEntriesResponse(response: NetworkResponse<List<ItemizationEntryDTO>, Unit>) {
-        when (response) {
-            is NetworkResponse.Success -> {
-                resultType.postValue(SUCCESS())
-                itemizationEntries.postValue(response.body)
-                makeProgressBarInvisible()
-            }
-            is NetworkResponse.Empty, is NetworkResponse.ClientError -> resultType.postValue(
-                NO_RESULT()
-            )
-            is NetworkResponse.ServerError -> resultType.postValue(SERVER_ERROR())
-            is NetworkResponse.NetworkError -> resultType.postValue(NETWORK_ERROR())
-            else -> {
-                resultType.postValue(UNKNOWN_ERROR())
-            }
-        }
-        //sendEvent(response is NetworkResponse.Success)
-    }
+//    internal fun processItemizationEntriesResponse(response: NetworkResponse<List<ItemizationEntryDTO>, Unit>) {
+//        when (response) {
+//            is NetworkResponse.Success -> {
+//                resultType.postValue(SUCCESS())
+//                itemizationEntries.postValue(response.body)
+//                makeProgressBarInvisible()
+//            }
+//            is NetworkResponse.Empty, is NetworkResponse.ClientError -> resultType.postValue(
+//                NO_RESULT()
+//            )
+//            is NetworkResponse.ServerError -> resultType.postValue(SERVER_ERROR())
+//            is NetworkResponse.NetworkError -> resultType.postValue(NETWORK_ERROR())
+//            else -> {
+//                resultType.postValue(UNKNOWN_ERROR())
+//            }
+//        }
+//        //sendEvent(response is NetworkResponse.Success)
+//    }
 
 
     private fun makeProgressBarInvisible(delayMillis: Long = 500) {
@@ -162,8 +168,8 @@ open class ItemizationListViewModel(application: Application) : AndroidViewModel
         }
     }
 
-    internal fun getSelectedItems(ids: List<String>): List<ItemizationEntryDTO> {
-        val selectedItems: MutableList<ItemizationEntryDTO> = mutableListOf()
+    internal fun getSelectedItems(ids: List<String>): List<ItemizationEntryDB> {
+        val selectedItems: MutableList<ItemizationEntryDB> = mutableListOf()
         itemizationEntries.value?.forEach { item ->
             for (id in ids) {
                 if (id == item.expenseId) {
@@ -230,9 +236,9 @@ open class ItemizationListViewModel(application: Application) : AndroidViewModel
 
     }
 
-    fun getMap(): Map<String, List<ItemizationEntryDTO>> {
+    fun getMap(): Map<String, List<ItemizationEntryDB>> {
         return itemizationEntries.value?.sortedByDescending { it.transactionDate }
-            ?.groupBy { it.transactionDate?.getFormattedTime() ?: "today" } ?: emptyMap()
+            ?.groupBy { it.transactionDate } ?: emptyMap()
     }
 
     fun getItemCount(): Int {
