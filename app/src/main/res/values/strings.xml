@@ -1,0 +1,34 @@
+<resources>
+    <string name="app_name">RohlikSample</string>
+    <string name="delete_itemization">Delete Itemization</string>
+    <string name="remove">"Remove"</string>
+    <string name="edit">"Edit"</string>
+    <string name="delete">"Delete"</string>
+    <string name="select_all">"Select All"</string>
+    <string name="entry_add_itemization">"Add Itemization"</string>
+    <string name="itemize_remaining_label">"Remaining:"</string>
+    <string name="itemize_itemized_amount_label">"Itemized Amount:"</string>
+    <string name="itemization_list">"Itemization"</string>
+    <string name="itemizationlist_loaded">"Itemizations Loaded"</string>
+    <string name="itemizationlist_loading">"Loading Itemizations"</string>
+    <string name="itemization_empty">"You have no itemizations"</string>
+    <string name="itemization">"Itemization"</string>
+    <string name="Itemize">"Itemize"</string>
+    <string name="Itemized">"Itemized:"</string>
+    <string name="itemizations">"Itemizations"</string>
+    <string name="no_itemization">"No Itemization"</string>
+    <string name="itemization_confirm_deletion_on_selected">"Are you sure you want to delete the selected expenses?"</string>
+    <string name="itemization_count">"Itemization (%%0%%)"</string>
+    <string name="itemization_delete">"Deleting Itemization"</string>
+    <string name="itemization_delete_failed">"Deletion Failed"</string>
+    <string name="itemization_delete_not_allowed">"Deletion of the item is not allowed"</string>
+    <string name="itemization_delete_selected">"Deleting Selected Items"</string>
+    <string name="itemization_delete_successful">"Selected Items Deleted"</string>
+    <string name="itemization_error">"There is a problem on loading itemization list, please try again later"</string>
+    <string name="tap_to_select_itemizations_for_deleting">"Tap to select itemizations for deleting"</string>
+    <string name="general_no_of_selected_list_items_android">"%d Selected"</string>
+    <string name="offline_snackbar_message">"You are offline !"</string>
+
+
+
+</resources>
