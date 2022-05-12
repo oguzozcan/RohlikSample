@@ -28,6 +28,3 @@ class SERVER_ERROR :
 
 class NETWORK_ERROR :
     ResultTypeItemization(R.string.itemization_error)
-
-class UNKNOWN_ERROR :
-    ResultTypeItemization(R.string.itemization_error)
